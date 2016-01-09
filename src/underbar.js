@@ -87,13 +87,7 @@
   // Return all elements of an array that don't pass a truth test.
   _.reject = function(collection, test) {
  
-      //WHY DOESN'T THIS WORK?: return _.filter(collection, function(item) {return !test(item);});
-    var passed = [];
-    _.each(collection, function(item){if (test(item)=== false) { passed.push(item);}});
-    return passed;
-
-    // TIP: see if you can re-use _.filter() here, without simply
-    // copying code in and modifying it
+    return _.filter(collection, function(item) {return !test(item);});
   };
 
   // Produce a duplicate-free version of the array.
@@ -195,14 +189,13 @@
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
-    if (iterator === undefined) {iterator = _.identity};
-    var passed = false;
-     _.each(collection, function(value){if (iterator(value)) passed = true });
-     return passed;
-  /*  **ATTEMPT AT USING _.EVERY**
-      var found = false;
-      found = _.every(collection, function(value){ return iterator(value);});
-      return !found;*/
+  //   if (iterator === undefined) {iterator = _.identity};
+  //   var passed = false;
+  //    _.each(collection, function(value){if (iterator(value)) passed = true });
+  //    return passed;
+  // /*  **ATTEMPT AT USING _.EVERY**
+      if (iterator === undefined) {iterator = _.identity};
+      return !_.every(collection, function(value){ return !iterator(value);});
     // TIP: There's a very clever way to re-use every() here.
   };
 
@@ -365,6 +358,18 @@
   // Example:
   // _.zip(['a','b','c','d'], [1,2,3]) returns [['a',1], ['b',2], ['c',3], ['d',undefined]]
   _.zip = function() {
+    var longest = 0;
+    var arr = [];
+    var args = Array.prototype.slice.call(arguments);
+    for (var i=0; i<args.length; i++)
+    {
+      if(args[i].length>longest) { longest = args[i].length};
+    }
+    for (var j=0; j<longest; j++){
+      arr[j]=[];
+      _.each(args, function(value){arr[j].push(value[j]);});
+    }
+    return arr;
   };
 
   // Takes a multidimensional array and converts it to a one-dimensional array.
@@ -372,16 +377,64 @@
   //
   // Hint: Use Array.isArray to check if something is an array
   _.flatten = function(nestedArray, result) {
+    var arr = [];
+    if (result===true){var runOnce = false;};
+    var addUniq = function (nested, res) {
+      for (var i = 0; i < nested.length; i++) {
+        var used = false;
+        for (var j=0; j <arr.length; j++){
+          if (arr[j]===nested[i])  {used=true};
+        }
+        if (!used && (runOnce === true||!Array.isArray(nested[i]))) {
+          arr.push(nested[i]);
+        }
+        else if (Array.isArray(nested[i])){
+          if (runOnce===false){runOnce=true;};
+          addUniq(nested[i]);
+        }
+      }
+    };
+    addUniq(nestedArray, result);
+    return arr;
   };
 
   // Takes an arbitrary number of arrays and produces an array that contains
   // every item shared between all the passed-in arrays.
   _.intersection = function() {
+    var arr = [];
+    var args = Array.prototype.slice.call(arguments);
+    var unique = _.flatten(args, true);
+    for (var i=0; i<unique.length; i++){
+      var found = 0;
+      for (var j=0; j<args.length; j++) {
+        if (_.indexOf(args[j], unique[i])>-1){
+          found++;
+        }
+      }
+      if (found===args.length) {arr.push(unique[i])};
+    }
+    return arr;
   };
 
   // Take the difference between one array and a number of other arrays.
   // Only the elements present in just the first array will remain.
   _.difference = function(array) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    for(var i=0; i<array.length; i++){
+      var found=false;
+      for(var j=0; j <args.length; j++) {
+        for (var k=0; k <args[j].length; k++){
+          if (args[j][k] === array[i]) {
+            found=true;
+          }
+        }
+      }
+      if (found) {
+        array.splice(i,1); 
+        i--;
+      }
+    }
+  return array;
   };
 
   // Returns a function, that, when invoked, will only be triggered at most once
