@@ -343,13 +343,26 @@
   // Calls the method named by functionOrKey on each value in the list.
   // Note: You will need to learn a bit about .apply to complete this.
   _.invoke = function(collection, functionOrKey, args) {
-  };
+    var results = [];      
+      if (!(typeof functionOrKey === "string")){
+        _.each(collection, function(val){ results.push(functionOrKey.apply(val));});
+      } else {
+        _.each(collection, function(val){ results.push(val[functionOrKey].apply(val));});
+      }
+      return results;
+    };
 
   // Sort the object's values by a criterion produced by an iterator.
   // If iterator is a string, sort objects by that property with the name
   // of that string. For example, _.sortBy(people, 'name') should sort
   // an array of people by their name.
   _.sortBy = function(collection, iterator) {
+    if (typeof iterator !== 'string'){
+      collection.sort(function(a, b) {return iterator(a) - iterator(b);});
+    } else {
+      collection.sort(function(a, b){return a[iterator]-b[iterator];});
+    }
+    return collection;
   };
 
   // Zip together two or more arrays with elements of the same index
@@ -443,5 +456,18 @@
   //
   // Note: This is difficult! It may take a while to implement.
   _.throttle = function(func, wait) {
-  };
+      var timer = false;
+      
+      var timerOff = function() {
+        timer = false;
+      }
+
+      return function(){ 
+        while (!timer){
+          timer = true;
+          func.apply(null, arguments);
+          setTimeout(timerOff, wait);                   
+        }
+      }
+    }
 }());
